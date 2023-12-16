@@ -63,6 +63,7 @@ class _ChatScreenState extends State<ChatScreen> {
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
+            color: Colors.white
           ),
         ),
         backgroundColor: Colors.blue, // Set your desired app bar background color
@@ -75,7 +76,7 @@ class _ChatScreenState extends State<ChatScreen> {
               itemCount: messages.length,
               itemBuilder: (BuildContext context, int index) {
                 final message = messages[index];
-                final isCurrentUserMessage = true;
+                final isCurrentUserMessage = false;
                 return MessageBubble(
                   message: message,
                   isCurrentUserMessage: isCurrentUserMessage,
