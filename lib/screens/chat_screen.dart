@@ -9,6 +9,41 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
+  // Create a socket instance
+  late IO.Socket socket;
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize the socket connection
+    socket = IO.io('http://localhost:3001', <String, dynamic>{
+      'transports': ['websocket'],
+    });
+
+    // Listen to 'new user' event
+    socket.on('new user', (data) {
+      setState(() {
+        messages.add(data.toString());
+      });
+    });
+
+    // Listen to 'message' event
+    socket.on('message', (data) {
+      setState(() {
+        messages.add(data.toString());
+      });
+    });
+
+    // Connect to the server
+    socket.connect();
+  }
+
+  @override
+  void dispose() {
+    // Close the socket connection
+    socket.dispose();
+    super.dispose();
+  }
   List<String> messages = [
     'Hello',
     'Hi there!',
@@ -55,6 +90,7 @@ class _ChatScreenState extends State<ChatScreen> {
               onMessageSent: (message) {
                 setState(() {
                   messages.add(message);
+                  socket.emit('message', message); // Send the message to the server
                 });
               },
             ),
