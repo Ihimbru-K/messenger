@@ -9,47 +9,48 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-  // Create a socket instance
   late IO.Socket socket;
+
+  bool isLoading = true;
+  List<String> messages = [];
 
   @override
   void initState() {
     super.initState();
-    // Initialize the socket connection
     socket = IO.io('http://localhost:3001', <String, dynamic>{
       'transports': ['websocket'],
     });
 
-    // Listen to 'new user' event
+    socket.on('connect', (_) {
+      print('Connected to server');
+    });
+
     socket.on('new user', (data) {
       setState(() {
         messages.add(data.toString());
       });
     });
 
-    // Listen to 'message' event
     socket.on('message', (data) {
       setState(() {
         messages.add(data.toString());
+        isLoading = false;
       });
     });
 
-    // Connect to the server
+    socket.on('disconnect', (_) {
+      print('Disconnected from server');
+    });
+
     socket.connect();
   }
 
   @override
   void dispose() {
-    // Close the socket connection
-    socket.dispose();
+    socket.disconnect();
+    socket.destroy();
     super.dispose();
   }
-  List<String> messages = [
-    'Hello',
-    'Hi there!',
-    'How are you?',
-    'I\'m doing great. Thanks!',
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -58,15 +59,14 @@ class _ChatScreenState extends State<ChatScreen> {
         elevation: 2,
         centerTitle: true,
         title: Text(
-
           'Chat App',
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
-            color: Colors.white
+            color: Colors.white,
           ),
         ),
-        backgroundColor: Colors.blue, // Set your desired app bar background color
+        backgroundColor: Colors.blue,
       ),
       body: Column(
         children: [
@@ -86,12 +86,12 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
           Container(
             padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-            color: Colors.grey[200], // Set your desired input field background color
+            color: Colors.grey[200],
             child: ChatInputField(
               onMessageSent: (message) {
                 setState(() {
                   messages.add(message);
-                  socket.emit('message', message); // Send the message to the server
+                  socket.emit('message', message);
                 });
               },
             ),
